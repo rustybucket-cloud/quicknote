@@ -1,2 +1,2 @@
 make:
-	gcc -o quicknote main.c
+	gcc -g main.c -o quicknote
