@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdlib.h>
 
 #define MAX_LINE_LENGTH 1024
 
-char* generate_file_name(char *file_name, char *note_name) {
+void generate_file_name(char *file_name, char *note_name) {
 	strcat(file_name, "./notes/");
 	strcat(file_name, note_name);
 	strcat(file_name, ".txt");
-	return file_name;
 }
 
 int handle_read(int argc, char *argv[]) {
@@ -119,6 +119,41 @@ int handle_search(int argc, char *argv[]) {
 	return 0;
 }
 
+int handle_edit(int argc, char *argv[]) {
+	char note_name[100] = "";
+	strcat(note_name, argv[2]);
+
+	char file_name[100] = "";
+	generate_file_name(file_name, note_name);
+
+	FILE *file = fopen(file_name, "r+");
+	if (file == NULL) {
+		fprintf(stderr, "File not found.");
+		return -1;
+	}
+
+	int file_content_size = MAX_LINE_LENGTH * 5;
+	char* file_content = (char*)malloc(sizeof(char) * file_content_size);
+	char line[MAX_LINE_LENGTH] = "";
+	while(fgets(line, MAX_LINE_LENGTH, file)) {
+		if (strlen(line) + strlen(file_content) > file_content_size) {
+			file_content_size = file_content_size * 2;
+			file_content = (char*)realloc(file_content, sizeof(char) * file_content_size);
+		}
+		strcat(file_content, line);
+	}
+
+	printf("Current note:\n%s\n", file_content);
+	free(file_content);
+
+	char input[MAX_LINE_LENGTH] = "";
+	fgets(input, sizeof(input), stdin);
+
+	create_note(note_name, input);
+
+	return 0;
+}
+
 enum ACTION {
 	CREATE,
 	READ,
@@ -155,8 +190,7 @@ int main(int argc, char *argv[]) {
 		case READ:
 			return handle_read(argc, argv);
 		case EDIT:
-			printf("Edit Note\n");
-			return 0;
+			return handle_edit(argc, argv);
 		case SEARCH:
 			return handle_search(argc, argv);
 		case HELP:
